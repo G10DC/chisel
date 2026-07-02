@@ -25,3 +25,11 @@ test('terseProseAdvisor leaves code, strings, commands UNCHANGED (safety guard)'
 test('terseProseAdvisor("") -> ""', () => {
   assert.equal(terseProseAdvisor(''), '');
 });
+
+test('terseProseAdvisor strips opener pleasantries (Sure, / Well, / So,) but keeps real conjunctions', () => {
+  assert.equal(terseProseAdvisor('Sure, let me run the tests'), 'run the tests');
+  assert.equal(terseProseAdvisor('Well, the build failed.'), 'the build failed.');
+  assert.equal(terseProseAdvisor('So, this is the plan.'), 'this is the plan.');
+  // "So" without a comma is a real conjunction -> NOT stripped
+  assert.equal(terseProseAdvisor('So the result is correct.'), 'So the result is correct.');
+});
