@@ -8,6 +8,7 @@
     "test": "node --test \"test/**/*.test.js\"",
     "baseline": "node scripts/baseline.mjs",
     "benchmark": "node scripts/benchmark.mjs",
+    "cross-benchmark": "node scripts/benchmark-cross.mjs",
     "lint": "eslint ."
   },
   "devDependencies": {
