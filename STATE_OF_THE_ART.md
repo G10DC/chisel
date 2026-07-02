@@ -1,7 +1,6 @@
 # Chisel — State of the Art
 
-Six reference repositories surfaced by GitResearcher for this idea. Each yields a **reuse** lesson
-and an **avoid** lesson. Exact links in `../GitResearcher/projects/20260702_134724/2_repo_candidates.json`.
+Six reference repositories. Each yields a **reuse** lesson and an **avoid** lesson.
 
 | Repo | Approach | ✅ Reuse | ⛔ Avoid |
 |---|---|---|---|

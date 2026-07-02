@@ -65,13 +65,6 @@ npm run baseline # node scripts/baseline.mjs <transcript.jsonl>
 npm run lint     # eslint
 ```
 
-## Provenance
-Chisel was designed by running **GitResearcher** (../GitResearcher) on the idea *"a Claude Code
-skill that minimizes token usage by being concise, keeping a clean memory, and acting precisely,
-without losing performance."* The full source analysis lives in
-`../GitResearcher/projects/20260702_134724/` (6 repos × 2 lenses, 5 modules, adversarial review,
-inspiration). These docs are the actionable distillation of that report.
-
 ## Status
-**Planning / requirements phase.** No code yet — by design: Phase 0 (baseline measurement) must
-precede any implementation. See `ROADMAP.md`.
+v0.1.0 — repo scaffold, Phase 0 baseline instrument, and the three lever advisors with tests.
+Phases 1→10 per `ROADMAP.md`.
