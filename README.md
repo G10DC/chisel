@@ -50,17 +50,44 @@ chisel/
     └── REFERENCES.md    # links: repos, inspiration sources, tooling
 ```
 
-## Install as a Claude Code skill
+## Install
+
+Chisel is a Claude Code **skill**: make the repo discoverable in the skills directory. No build step, no runtime dependencies.
+
+**Option A — local development (symlink; live edits are picked up):**
 ```bash
-# symlink (or copy) the skill into your Claude skills dir
-ln -s "$PWD" ~/.claude/skills/chisel
+cd /path/to/chisel
+ln -sf "$PWD" ~/.claude/skills/chisel
 ```
-Then Chisel is available in any session; Claude invokes it when the task fits the description in `SKILL.md`.
+**Option B — stable use (copy):**
+```bash
+cp -R /path/to/chisel ~/.claude/skills/chisel
+```
+**Verify:** start a new Claude Code session — Chisel appears among the available skills and is invoked when a task matches its description. Remove with `rm ~/.claude/skills/chisel`.
+
+## Benchmark — what each lever does
+
+```bash
+npm run benchmark        # node scripts/benchmark.mjs
+```
+Representative results (relative; chars/4 ≈ tokens):
+- **Lever 3 — Token reduction** (`terseProseAdvisor` on agent prose): 67 → 47 tok (**−30%**). Strips filler; code/output/errors untouched.
+- **Lever 1 — Memory cleanup** (`pruneAdvisor` on a context window): 6 → 3 entries (**size −51%**). Drops duplicates + stale.
+- **Lever 2 — Operational precision** (`isRedundant` on a tool plan): flags 1 of 2 planned calls as redundant (cost saved).
+
+Each lever is an **advisor** the skill reasons with — it never auto-applies a change that could lose meaning.
+
+### Phase 0 baseline on a real session
+```bash
+npm run baseline -- ~/.claude/projects/<project>/<session>.jsonl
+```
+Example (a long coding session): 289 turns, 264 tool calls, ~99M total tokens (95.4M cache-read, 1.8M fresh input, 1.97M output), 0 parse errors.
 
 ## Develop
 ```bash
 npm install      # dev tools (eslint)
 npm test         # offline unit tests
+npm run benchmark
 npm run baseline # node scripts/baseline.mjs <transcript.jsonl>
 npm run lint     # eslint
 ```
