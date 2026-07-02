@@ -33,3 +33,15 @@ test('terseProseAdvisor strips opener pleasantries (Sure, / Well, / So,) but kee
   // "So" without a comma is a real conjunction -> NOT stripped
   assert.equal(terseProseAdvisor('So the result is correct.'), 'So the result is correct.');
 });
+
+test('terseProseAdvisor reduces verbose Italian prose (pleasantries + filler IT)', () => {
+  const it = 'Certo, praticamente ti mostro come funziona; fondamentalmente è semplice, e ovviamente gira bene.';
+  const out = terseProseAdvisor(it);
+  assert.ok(out.length < it.length, 'Italian prose shrinks');
+  assert.match(out, /funziona|gira/, 'core meaning preserved');
+  assert.doesNotMatch(out, /praticamente|fondamentalmente|Certo,/);
+});
+
+test('terseProseAdvisor leaves Italian code/strings intact', () => {
+  assert.equal(terseProseAdvisor('const x = "valore";'), 'const x = "valore";');
+});

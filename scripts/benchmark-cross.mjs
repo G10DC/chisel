@@ -18,9 +18,9 @@ import { terseProseAdvisor } from '../lib/compress.js';
 
 // Shared filler pattern (same definition terseProseAdvisor uses), kept local so the directive
 // approximations are self-contained.
-const FILLER = /(?<![\w-])(let me|i'll|i will|i am going to|just|basically|actually|i think|i guess|you know)(?![\w-])/gi;
-const OPENER = /^\s*(let me|i'll|i will|i am going to)\s+/i;
-const PLEASANTRIES = /^\s*(sure|of course|certainly|right|ok|okay|well|so|now|great|perfect)[,!.]?\s+/gi;
+const FILLER = /(?<![\w-])(let me|i'll|i will|i am going to|just|basically|actually|i think|i guess|you know|praticamente|fondamentalmente|ovviamente|insomma|vabbè)(?![\w-])/giu;
+const OPENER = /^\s*(let me|i'll|i will|i am going to|fammi|ti mostro|ti faccio vedere|ti spiego|ora procedo|adesso procedo|adesso vediamo)\s+/iu;
+const PLEASANTRIES = /^\s*(sure|of course|certainly|right|ok|okay|well|so|now|great|perfect|certo|certamente|ovviamente|dunque|quindi|allora|ecco|beh|vabbè|insomma|diciamo|cioè|guarda)[,.!]\s+/gimu;
 
 // caveman-it declared rules: telegraphic, no pleasantries, no filler, short phrases.
 function cavemanSim(t) {
@@ -56,6 +56,10 @@ const SAMPLES = {
     "I'll walk you through it step by step. Of course, the client first requests authorization, " +
     'then it exchanges the code for a token. So, basically, it uses OAuth2 with PKCE for security, ' +
     'and I think that keeps the whole thing safe.',
+
+  'verbose prose (IT)':
+    'Certo, praticamente ti mostro come funziona; fondamentalmente è semplice, ' +
+    'e ovviamente gira bene, insomma è tutto a posto.',
 
   'code + prose':
     'Let me refactor this function.\n\n```js\nconst x = 1;\n```\n\n' +

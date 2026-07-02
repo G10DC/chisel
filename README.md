@@ -1,7 +1,8 @@
 # Chisel 🔨
 
 A **Claude Code skill** that minimizes token consumption across three complementary levers —
-**word reduction, clean memory, precise/punctual action** — **without reducing performance**.
+**word reduction, clean memory, precise action** — **without reducing performance**.
+Bilingual (**English + Italian**) and **code-safe** (never alters code, strings, or output).
 
 > *A chisel removes the superfluous with precision to reveal the form underneath. Chisel does the
 > same for the agent's token budget: cut what is redundant, keep what changes the outcome, never
@@ -82,6 +83,27 @@ Each lever is an **advisor** the skill reasons with — it never auto-applies a 
 npm run baseline -- ~/.claude/projects/<project>/<session>.jsonl
 ```
 Example (a long coding session): 289 turns, 264 tool calls, ~99M total tokens (95.4M cache-read, 1.8M fresh input, 1.97M output), 0 parse errors.
+
+## Comparison with caveman-it & concise-output
+
+These three installed skills all reduce agent output, on different principles:
+
+- **chisel** — a pure, **code-safe** advisor. It removes filler and opener pleasantries from the
+  agent's prose (**EN + IT**) but **never touches code, strings, commands, or errors** (a heuristic
+  guard detects structured text and returns it unchanged). Reduction is **lossless**: content is
+  preserved, only verbal padding goes. Use when output may contain code/data you must not corrupt.
+- **caveman-it** — a **style directive** ("telegraphic Italian, no pleasantries"). Strong on prose
+  filler, but it is a prompt instruction with **no code-safety guarantee** — the model following it
+  could alter code/strings. Best for a terse voice in Italian conversation.
+- **concise-output** — a **length-cap directive** ("≤ 3 blocks, code first"). It gets the largest
+  cut on long output by **truncating** to 3 blocks, which **drops content** (lossy). Best when a
+  hard length cap matters more than completeness.
+
+**When to use which:** chisel when output may contain code/data you must not corrupt and you want
+lossless trimming; caveman-it for a terse Italian voice; concise-output for a hard size cap
+(accepting lost content). They compose. See [`BENCHMARK.md`](./BENCHMARK.md) for measured
+reductions on a shared dataset (chisel is on par with caveman-it on lossless prose, and is the
+only code-safe option).
 
 ## Develop
 ```bash

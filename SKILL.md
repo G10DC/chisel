@@ -1,6 +1,6 @@
 ---
 name: chisel
-description: Minimize token usage across three levers — concise language, clean memory, precise action — without degrading output quality. Use on long sessions, large contexts, repetitive tool calls, or when cost/latency matter. Measure before optimizing; never trade quality for tokens.
+description: Minimize token usage across three levers — concise prose, clean memory, precise action — without degrading output quality. Bilingual (English + Italian) and code-safe (never alters code/strings/output). Use on long sessions, large contexts, repetitive tool calls, or when cost/latency matter. Measure before optimizing; never trade quality for tokens.
 ---
 
 # Chisel
@@ -31,6 +31,7 @@ Cut tokens, keep quality. Three levers, applied in order. One rule above all:
 - Densest correct form: code first, prose only if needed.
 - Terse by default: fragments over sentences when unambiguous.
 - No restating the user's words back. No ceremonial openers or closers.
+- Bilingual (EN + IT) and code-safe: strips filler/openers in both languages, never alters code, strings, or output.
 
 ## When NOT to compress
 - Errors, failures, security warnings — full fidelity always.
