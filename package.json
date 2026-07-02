@@ -1,0 +1,16 @@
+{
+  "name": "chisel",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Claude Code skill: minimize token usage (concise language, clean memory, precise action) without degrading output quality.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "baseline": "node scripts/baseline.mjs",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0"
+  }
+}
