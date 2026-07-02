@@ -8,14 +8,26 @@ import { pathToFileURL } from 'node:url';
 
 /**
  * Analyzes a JSONL transcript and returns baseline metrics. Pure (no I/O).
- * Tolerant of unknown event shapes (skips unparseable lines).
+ * Tolerant of unknown event shapes (skips unparseable lines and metadata-only events).
+ *
+ * Token semantics (Anthropic usage): `input_tokens` EXCLUDES cached tokens; cache reads/writes
+ * are reported separately in `cache_read_input_tokens` / `cache_creation_input_tokens`. We expose
+ * all four components so a real cost estimate can weight them (cache read ≈ 0.1x, cache write
+ * ≈ 1.25x of the base input price). `totalInputTokens` sums the three input components.
+ *
+ * Tool semantics: only `tool_use` blocks inside an assistant `message.content` array are counted
+ * (the shape real Claude Code transcripts use). `tool_result` is not reliably in content, so it is
+ * not reported.
+ *
  * @param {string} raw JSONL text
  * @returns {Object} metrics
  */
 export function analyzeTranscript(raw) {
   const lines = String(raw).split('\n').filter(Boolean);
-  let turns = 0, toolCalls = 0, toolResults = 0;
-  let inputTokens = 0, outputTokens = 0, parseErrors = 0;
+  let turns = 0, toolCalls = 0;
+  let inputTokens = 0, outputTokens = 0;
+  let cacheCreationTokens = 0, cacheReadTokens = 0;
+  let parseErrors = 0;
   const tools = new Map();
 
   for (const line of lines) {
@@ -32,23 +44,27 @@ export function analyzeTranscript(raw) {
         const name = block.name || 'unknown';
         tools.set(name, (tools.get(name) || 0) + 1);
       }
-      if (block && block.type === 'tool_result') toolResults++;
     }
 
     const u = evt.message?.usage || evt.usage;
     if (u) {
       inputTokens += u.input_tokens || 0;
       outputTokens += u.output_tokens || 0;
+      cacheCreationTokens += u.cache_creation_input_tokens || 0;
+      cacheReadTokens += u.cache_read_input_tokens || 0;
     }
   }
 
+  const totalInputTokens = inputTokens + cacheCreationTokens + cacheReadTokens;
   return {
     turns,
     toolCalls,
-    toolResults,
     inputTokens,
     outputTokens,
-    totalTokens: inputTokens + outputTokens,
+    cacheCreationTokens,
+    cacheReadTokens,
+    totalInputTokens,
+    totalTokens: totalInputTokens + outputTokens,
     toolsPerTurn: turns ? Number((toolCalls / turns).toFixed(2)) : 0,
     parseErrors,
     tools: Object.fromEntries([...tools.entries()].sort((a, b) => b[1] - a[1])),

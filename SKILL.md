@@ -41,4 +41,4 @@ Cut tokens, keep quality. Three levers, applied in order. One rule above all:
 - `scripts/baseline.mjs <transcript.jsonl>` — token/tool/turn metrics (Phase 0).
 - `lib/memory.js` `pruneAdvisor` — flags stale/duplicate context entries.
 - `lib/precision.js` `estimateToolCost` / `isRedundant` — tool-cost + redundancy checks.
-- `lib/compress.js` `terseAdvisor` — lossless filler/whitespace reduction.
+- `lib/compress.js` `terseProseAdvisor` — filler reduction for the agent's PROSE only (never apply to code/output/errors; it auto-skips text that looks structured).
