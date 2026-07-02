@@ -1,7 +1,7 @@
 # Chisel 🔨
 
-A **Claude Code skill** that minimizes token consumption across three complementary levers —
-**word reduction, clean memory, precise action** — **without reducing performance**.
+A **Claude Code skill** that minimizes token consumption across four complementary levers —
+**word reduction, clean memory, precise action, lean output** — **without reducing performance**.
 Bilingual (**English + Italian**) and **code-safe** (never alters code, strings, or output).
 
 > *A chisel removes the superfluous with precision to reveal the form underneath. Chisel does the
@@ -13,12 +13,13 @@ Token cost grows faster than quality. Most "optimizations" trade correctness for
 nobody measures it. Chisel's first principle is the opposite: **measure the baseline first,
 optimize only what is proven not to degrade quality, ship each layer behind a validation gate.**
 
-## The three levers
+## The levers
 | Lever | Question it answers | Chisel layer |
 |---|---|---|
 | **Word reduction** | Can the same intent be expressed in fewer tokens? | Token Reduction (compression) |
 | **Clean memory** | Is the context free of stale/redundant material? | Memory Cleanup (pruning) |
 | **Precise action** | Are tool calls and steps minimal and non-redundant? | Operational Precision (routing + early-stop) |
+| **Lean output** | Is tool/command output trimmed to what matters? | Output Discipline (head + tail + count) |
 
 An **intercept layer** sits between user intent and agent execution: it filters, compresses, and
 routes — never silently degrading output.
@@ -33,19 +34,24 @@ routes — never silently degrading output.
 ## Repository layout
 ```
 chisel/
-├── SKILL.md             # the Claude Code skill (frontmatter + 3 levers)
+├── SKILL.md             # the Claude Code skill (frontmatter + 4 levers)
 ├── README.md            # this file — vision + principles
+├── CLAUDE.md            # drop-in token-discipline rules for any project
 ├── REQUIREMENTS.md      # functional + non-functional requirements (FR/NFR)
 ├── ROADMAP.md           # action plan: Phase 0→10, milestones, exit criteria
-├── ARCHITECTURE.md      # 3-layer intercept design + Claude Code integration
+├── ARCHITECTURE.md      # intercept design + Claude Code integration
 ├── RISKS.md             # risk register + mitigations
-├── STATE_OF_THE_ART.md  # the 6 reference repos: what to reuse / avoid
+├── STATE_OF_THE_ART.md  # reference repos: what to reuse / avoid
 ├── scripts/
-│   └── baseline.mjs     # Phase 0 — transcript metrics (token/tool/turn)
+│   ├── baseline.mjs        # Phase 0 — transcript metrics (token/tool/turn)
+│   ├── benchmark.mjs       # lever benchmark
+│   └── benchmark-cross.mjs # cross-skill comparison
 ├── lib/                 # lever advisors (pure, tested)
 │   ├── memory.js        #   Lever 1 — pruneAdvisor (stale/duplicate)
 │   ├── precision.js     #   Lever 2 — estimateToolCost / isRedundant
-│   └── compress.js      #   Lever 3 — terseAdvisor (lossless)
+│   ├── compress.js      #   Lever 3 — terseProseAdvisor (lossless, EN+IT)
+│   ├── output.js        #   Lever 4 — toolOutputAdvisor (head + tail + count)
+│   └── symbols.js       #   code navigation — symbolSlice (block by name)
 ├── test/                # node:test (offline)
 └── refs/
     └── REFERENCES.md    # links: repos, inspiration sources, tooling
@@ -75,6 +81,7 @@ Representative results (relative; chars/4 ≈ tokens):
 - **Lever 3 — Token reduction** (`terseProseAdvisor` on agent prose): 67 → 47 tok (**−30%**). Strips filler; code/output/errors untouched.
 - **Lever 1 — Memory cleanup** (`pruneAdvisor` on a context window): 6 → 3 entries (**size −51%**). Drops duplicates + stale.
 - **Lever 2 — Operational precision** (`isRedundant` on a tool plan): flags 1 of 2 planned calls as redundant (cost saved).
+- **Lever 4 — Output discipline** (`toolOutputAdvisor` on verbose command output): 200 → 31 lines (−85%).
 
 Each lever is an **advisor** the skill reasons with — it never auto-applies a change that could lose meaning.
 

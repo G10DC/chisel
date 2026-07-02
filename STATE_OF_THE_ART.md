@@ -11,6 +11,14 @@ Six reference repositories. Each yields a **reuse** lesson and an **avoid** less
 | **tonl-dev/tonl** | Compact serialization | Compact-encoding patterns for dense data. | Query-injection surfaces — validate all inputs that feed serialization. |
 | **quantumaikr/quant.cpp** | KV-cache compression | Memory-footprint reduction thinking (compress what's cached). | Memory-safety hazards in low-level compression — favor safe, validated transforms. |
 
+## Token-reduction landscape (community survey)
+Adjacent tools (surveyed, not vendored) and how Chisel relates:
+- **RTK** (terminal-output proxy) and **token-optimizer-mcp** (caches tool output) → Chisel's Lever 4 (`toolOutputAdvisor`) is the lightweight, code-safe equivalent.
+- **Token Savior** / **code-review-graph** (symbol/graph navigation) → Chisel's `symbolSlice` is the zero-dependency heuristic counterpart.
+- **claude-token-efficient** (drop-in CLAUDE.md) → Chisel ships its own `CLAUDE.md`.
+- **claude-context** (Zilliz, semantic search) → out of scope (needs vector infra).
+- **token-optimizer** (ghost tokens / compaction) → future Lever-1 extension (compaction-aware pruning).
+
 ## Reuse (consolidated)
 - **context-mode MCP** + **Context-Engine** patterns for the memory layer (don't reinvent).
 - **@ai-sdk/anthropic** and the `ai` package for API plumbing.

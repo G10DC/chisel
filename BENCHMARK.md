@@ -39,6 +39,12 @@ Token estimate = chars / 4 (rough; the **relative reduction** is the comparison)
 - The three are **composable**: chisel for safe prose trimming, concise for hard length caps,
   caveman for a terse voice.
 
+## Chisel lever benchmark (output)
+
+`toolOutputAdvisor` (Lever 4) on a 200-line test-run sample: **200 → 31 lines (≈1323 → 202 tok,
+−85%)** — the largest single cut, because verbose tool/command output is the biggest token sink.
+Code-safe: no line is altered, only a contiguous middle run is elided with a count marker.
+
 ## Scope & method
 
 - **chisel** is measured with its real function (`lib/compress.js#terseProseAdvisor`).

@@ -1,6 +1,6 @@
 ---
 name: chisel
-description: Minimize token usage across three levers — concise prose, clean memory, precise action — without degrading output quality. Bilingual (English + Italian) and code-safe (never alters code/strings/output). Use on long sessions, large contexts, repetitive tool calls, or when cost/latency matter. Measure before optimizing; never trade quality for tokens.
+description: Minimize token usage across four levers — concise prose, clean memory, precise action, lean output — without degrading output quality. Bilingual (English + Italian) and code-safe (never alters code/strings/output). Use on long sessions, large contexts, repetitive tool calls, or when cost/latency matter. Measure before optimizing; never trade quality for tokens.
 ---
 
 # Chisel
@@ -33,6 +33,13 @@ Cut tokens, keep quality. Three levers, applied in order. One rule above all:
 - No restating the user's words back. No ceremonial openers or closers.
 - Bilingual (EN + IT) and code-safe: strips filler/openers in both languages, never alters code, strings, or output.
 
+## Lever 4 — Output discipline
+- Trim verbose tool/command output (tests, logs, `find`) to head + tail + an omission count; don't dump hundreds of lines.
+- Never alter individual lines — only elide a contiguous middle run.
+
+## Code navigation
+- Read only the symbol you need, not the whole file (function/block extraction by name).
+
 ## When NOT to compress
 - Errors, failures, security warnings — full fidelity always.
 - Anything the user must verify verbatim.
@@ -43,3 +50,6 @@ Cut tokens, keep quality. Three levers, applied in order. One rule above all:
 - `lib/memory.js` `pruneAdvisor` — flags stale/duplicate context entries.
 - `lib/precision.js` `estimateToolCost` / `isRedundant` — tool-cost + redundancy checks.
 - `lib/compress.js` `terseProseAdvisor` — filler reduction for the agent's PROSE only (never apply to code/output/errors; it auto-skips text that looks structured).
+- `lib/output.js` `toolOutputAdvisor` — trims verbose tool/command output to head + tail + count.
+- `lib/symbols.js` `symbolSlice` — extracts a single function/block by name (read the symbol, not the file).
+- `CLAUDE.md` — drop-in token-discipline rules for any project.

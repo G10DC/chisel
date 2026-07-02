@@ -14,6 +14,8 @@ user intent
 │  2. Operational Precision ──► model tool cost, suppress redundant calls,      │
 │                              detect done-state and stop early                 │
 │  3. Token Reduction  ──► compress language (syntactic → optional semantic)   │
+│  4. Output Discipline ──► trim verbose tool output (head + tail + count)      │
+│  +  Code navigation ──► read a symbol, not the whole file                     │
 │                                                                              │
 │  cross-cutting:  Measure (baseline + per-step) · Validate · Log · Toggle     │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -25,7 +27,7 @@ agent execution (Claude Code harness)
 quality + cost telemetry ──► A/B vs. baseline ──► keep / rollback
 ```
 
-## The three layers
+## The layers
 
 ### Layer 1 — Memory Cleanup
 - **Responsibility**: keep the working context lean and high-signal.
@@ -48,12 +50,17 @@ quality + cost telemetry ──► A/B vs. baseline ──► keep / rollback
   - **Semantic** (Phase 7, optional): meaning-preserving rewrite.
 - **Reference (not dependency)**: huggingface/tokenizers — for understanding token boundaries only.
 
+### Layer 4 — Output discipline
+- **Responsibility**: keep tool/command output (tests, logs, `find`) from flooding the context.
+- **Mechanism**: head + tail window with an omission count; never alters individual lines.
+- **Code navigation** (auxiliary): `symbolSlice` reads one function/block by name, not the whole file.
+
 ## Claude Code integration
 - Implemented as a **Claude Code skill** (this repo) consumed by the harness.
 - Hooks into the agent loop at the natural intercept points (pre-tool, pre-step, pre-response).
 - Leverages **context-mode MCP** for memory/context operations (composable, not reinvented).
 - Leverages **@ai-sdk/anthropic** / `ai` packages for API plumbing where relevant.
-- Three runtime **levers** (memory / precision / reduction) + a **master kill-switch**; each is
+- Four runtime **levers** (memory / precision / reduction / output) + a **master kill-switch**; each is
   independently toggleable and logged.
 
 ## Data flow per turn

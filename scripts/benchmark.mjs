@@ -8,6 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { pruneAdvisor } from '../lib/memory.js';
 import { estimateToolCost, isRedundant } from '../lib/precision.js';
 import { terseProseAdvisor } from '../lib/compress.js';
+import { toolOutputAdvisor } from '../lib/output.js';
 
 const estTokens = (s) => Math.ceil(String(s).length / 4);
 const pct = (a, b) => (b ? Math.round(((b - a) / b) * 100) : 0);
@@ -58,10 +59,21 @@ function benchPrecision() {
   return { planned: planned.length, redundant, savedCost };
 }
 
+// Lever 4 — Output discipline: trim verbose tool/command output to head + tail + count.
+function benchOutput() {
+  const lines = Array.from({ length: 200 }, (_, i) => `test result line ${i}: pass`);
+  const text = lines.join('\n');
+  const trimmed = toolOutputAdvisor(text);
+  const before = estTokens(text);
+  const after = estTokens(trimmed);
+  return { beforeLines: lines.length, afterLines: trimmed.split('\n').length, before, after, reduction: pct(after, before) };
+}
+
 function main() {
   const c = benchCompress();
   const m = benchMemory();
   const p = benchPrecision();
+  const o = benchOutput();
 
   console.log('# Chisel lever benchmark\n');
   console.log('Estimates are relative (chars/4 ≈ tokens); the point is the reduction, not absolutes.\n');
@@ -74,6 +86,9 @@ function main() {
 
   console.log('Lever 2 — Operational precision  (isRedundant on a planned tool sequence)');
   console.log(`  ${p.planned} planned calls  ->  ${p.redundant} flagged redundant   (est. cost saved: ${p.savedCost})\n`);
+
+  console.log('Lever 4 — Output discipline  (toolOutputAdvisor on verbose command output)');
+  console.log(`  ${o.beforeLines} lines  ->  ${o.afterLines} lines   (${o.before} tok -> ${o.after} tok, -${o.reduction}%)\n`);
 
   console.log('Each lever is an ADVISOR the skill reasons with — it never auto-applies a change');
   console.log('that could lose meaning. Code/output/errors are left untouched (see terseProseAdvisor guard).');

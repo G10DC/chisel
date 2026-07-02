@@ -27,6 +27,9 @@ A layer ships only when **all** hold:
 | **FR-8** | 8* | **Domain-aware calibration** (optional): tune aggressiveness by task type (ML/UI/CLI/data). | Per-domain config; no cross-domain regressions. |
 | **FR-9** | 9* | **Cross-session learning** (optional): carry calibrated settings across sessions (opt-in). | Settings persist; no PII leak; user can wipe. |
 | **FR-10** | 10 | **Production hardening + security audit**: pin deps, signed distribution, adversarial input suite. | Security audit passes; no `curl\|bash`; input-validation 100%. |
+| **FR-11** | 4 | **Output discipline**: trim verbose tool/command output to head + tail + omission count. | Output size ↓ on verbose commands (e.g. test runs); no line altered, only the middle elided. |
+| **FR-12** | 4 | **Code navigation**: extract a single function/block by name instead of reading the whole file. | A named symbol is returned in full; absent names return null (no guess). |
+| **FR-13** | — | **Drop-in rules**: ship a `CLAUDE.md` with terse token-discipline rules for any project. | The file is self-contained and usable without the skill mechanics. |
 
 *\* optional phases — ship only if earlier phases clear their quality gate.*
 
@@ -35,7 +38,7 @@ A layer ships only when **all** hold:
 | ID | Requirement | Acceptance |
 |---|---|---|
 | **FR-T1** | **Transparency**: every optimization logs what it changed and the measured impact. | A readable per-run changelog of applied optimizations. |
-| **FR-T2** | **User control**: each of the 3 levers independently toggleable; global kill-switch. | Three flags + master switch, all honored. |
+| **FR-T2** | **User control**: each of the 4 levers independently toggleable; global kill-switch. | Four flags + master switch, all honored. |
 | **FR-T3** | **Composability**: integrate with the Claude Code harness + context-mode MCP; do not reinvent tokenization. | Uses harness hooks/MCP; `huggingface/tokenizers` is a reference, not a runtime dep. |
 
 ---

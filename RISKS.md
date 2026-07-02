@@ -14,6 +14,7 @@ Severity: 🔴 critical · 🟠 high · 🟡 medium. Each risk has a mitigation 
 | **R8** | **User acceptance** — optimization can *feel* like degradation even when metrics improve. | 🟡 | Transparency + user control (per-lever toggle); explain what changed. | 6 |
 | **R9** | **Performance-validation paradox** — validating optimization needs a baseline, but optimization perturbs the baseline. | 🟠 | A/B optimized-vs-baseline in parallel; never measure optimized against itself. | 5 |
 | **R10** | **Multi-user / org deployment** — shared settings and drift across users/teams. | 🟡 | Config profiles; per-user opt-in; no cross-user state without consent. | 6, 9 |
+| **R11** | **Output elision hides signal** — trimming tool output (Lever 4) can drop an error buried in the middle. | 🟠 | Head + tail keep the boundaries (where errors surface); the marker shows the count; no line is altered. Raise the threshold if needed. | 4 |
 
 ## Top three to watch
 1. **R1 (baseline)** — if Phase 0 is skipped or weak, every later claim is unfalsifiable. Non-negotiable.
