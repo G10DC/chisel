@@ -1,6 +1,6 @@
 {
   "name": "chisel",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "Claude Code skill: minimize token usage (concise prose, clean memory, precise action) without degrading output quality. Bilingual (EN+IT), code-safe.",
   "license": "MIT",

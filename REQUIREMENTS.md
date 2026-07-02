@@ -30,6 +30,9 @@ A layer ships only when **all** hold:
 | **FR-11** | 4 | **Output discipline**: trim verbose tool/command output to head + tail + omission count. | Output size ↓ on verbose commands (e.g. test runs); no line altered, only the middle elided. |
 | **FR-12** | 4 | **Code navigation**: extract a single function/block by name instead of reading the whole file. | A named symbol is returned in full; absent names return null (no guess). |
 | **FR-13** | — | **Drop-in rules**: ship a `CLAUDE.md` with terse token-discipline rules for any project. | The file is self-contained and usable without the skill mechanics. |
+| **FR-14** | 1/2 | **Read-cache**: flag re-reads of files already in context (path normalization, no FS access). | A planned read of a path already in context is flagged; new reads pass. |
+| **FR-15** | 0 | **Cost + retry telemetry**: USD cost estimate per token component, plus an edit-cycle retry proxy. | `estimateCost` returns per-component + total cost; `edits`/`editCycles`/`repeatEdits` report fix-loop volume. |
+| **FR-16** | — | **Context-discipline rules**: window-budget guidance (120K cap, manual compact at 60%, `/rewind`, plan-first, Markdown-first, `/btw`). | Rules present in `SKILL.md` + drop-in `CLAUDE.md`; self-contained, no runtime needed. |
 
 *\* optional phases — ship only if earlier phases clear their quality gate.*
 

@@ -15,6 +15,8 @@ Severity: 🔴 critical · 🟠 high · 🟡 medium. Each risk has a mitigation 
 | **R9** | **Performance-validation paradox** — validating optimization needs a baseline, but optimization perturbs the baseline. | 🟠 | A/B optimized-vs-baseline in parallel; never measure optimized against itself. | 5 |
 | **R10** | **Multi-user / org deployment** — shared settings and drift across users/teams. | 🟡 | Config profiles; per-user opt-in; no cross-user state without consent. | 6, 9 |
 | **R11** | **Output elision hides signal** — trimming tool output (Lever 4) can drop an error buried in the middle. | 🟠 | Head + tail keep the boundaries (where errors surface); the marker shows the count; no line is altered. Raise the threshold if needed. | 4 |
+| **R12** | **Cost-estimate drift** — `estimateCost` uses fixed default pricing; model prices change, so USD figures can diverge from the real bill. | 🟡 | Pricing is overridable per model; the baseline always exposes the raw token components, not just USD; figures are labeled estimates, not invoices. | 0 |
+| **R13** | **Context rot** — a near-full window degrades quality *and* raises cost (re-reading history compounds); users assume more space is better. | 🟠 | Context-discipline rules (FR-16): 120K budget, manual compact at 60%, `/rewind` on errors; cost estimate + edit-cycle proxy make the waste visible. | — |
 
 ## Top three to watch
 1. **R1 (baseline)** — if Phase 0 is skipped or weak, every later claim is unfalsifiable. Non-negotiable.

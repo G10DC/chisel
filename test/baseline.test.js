@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyzeTranscript } from '../scripts/baseline.mjs';
+import { analyzeTranscript, estimateCost } from '../scripts/baseline.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const realShape = fs.readFileSync(path.join(here, 'fixtures/real-shape.jsonl'), 'utf-8');
@@ -46,4 +46,35 @@ test('analyzeTranscript on a REAL-shape transcript: cache tokens + tool_use in c
   assert.equal(m.cacheCreationTokens, 0 + 1500);
   assert.equal(m.outputTokens, 1123 + 900);
   assert.equal(m.totalInputTokens, (13814 + 4200) + (18624 + 3000) + 1500);
+});
+
+const editSession = [
+  JSON.stringify({ type: 'user' }),
+  JSON.stringify({ type: 'assistant', message: { content: [
+    { type: 'tool_use', name: 'Read', input: { file_path: '/repo/a.js' } },
+    { type: 'tool_use', name: 'Edit', input: { file_path: '/repo/a.js' } },
+    { type: 'tool_use', name: 'MultiEdit', input: { file_path: '/repo/a.js' } },
+    { type: 'tool_use', name: 'Write', input: { file_path: '/repo/b.js' } },
+  ] } }),
+].join('\n');
+
+test('analyzeTranscript tracks edit cycles as a retry/waste proxy', () => {
+  const m = analyzeTranscript(editSession);
+  assert.equal(m.edits, 3, '3 mutation calls (Edit, MultiEdit, Write)');
+  assert.equal(m.editCycles, 1, 'one file (a.js) edited more than once');
+  assert.equal(m.repeatEdits, 1, 'one repeat edit beyond the first on a.js');
+  assert.equal(m.tools.Edit, 1);
+  assert.equal(m.tools.MultiEdit, 1);
+  assert.equal(m.tools.Write, 1);
+});
+
+test('estimateCost weights the four token components with a pricing model', () => {
+  const m = { inputTokens: 1_000_000, cacheCreationTokens: 1_000_000, cacheReadTokens: 1_000_000, outputTokens: 1_000_000 };
+  const c = estimateCost(m);
+  // default Sonnet-ish pricing (USD per 1M tokens): input 3, cache write 3.75, cache read 0.30, output 15
+  assert.equal(c.input, 3);
+  assert.equal(c.cacheWrite, 3.75);
+  assert.equal(c.cacheRead, 0.3);
+  assert.equal(c.output, 15);
+  assert.equal(c.total, 3 + 3.75 + 0.3 + 15);
 });

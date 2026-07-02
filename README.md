@@ -24,6 +24,11 @@ optimize only what is proven not to degrade quality, ship each layer behind a va
 An **intercept layer** sits between user intent and agent execution: it filters, compresses, and
 routes — never silently degrading output.
 
+A cross-cutting principle, **context discipline**, governs the window itself: stay under ~120K tokens
+/ 12% of the window, compact manually at ~60%, `/rewind` on errors, plan first, feed Markdown not
+HTML/PDF/DOCX. A 500K-token session scores *worse* than a 200K one (context rot) — more space is not
+better.
+
 ## Non-negotiables
 1. **Performance preservation** — quality vs. baseline is the primary metric, not tokens saved.
 2. **Measurement before optimization** — Phase 0 instruments the current state before anything changes.
@@ -51,6 +56,7 @@ chisel/
 │   ├── precision.js     #   Lever 2 — estimateToolCost / isRedundant
 │   ├── compress.js      #   Lever 3 — terseProseAdvisor (lossless, EN+IT)
 │   ├── output.js        #   Lever 4 — toolOutputAdvisor (head + tail + count)
+│   ├── reads.js         #   read-cache — shouldRead / duplicateReads (no re-reads)
 │   └── symbols.js       #   code navigation — symbolSlice (block by name)
 ├── test/                # node:test (offline)
 └── refs/
@@ -78,10 +84,11 @@ cp -R /path/to/chisel ~/.claude/skills/chisel
 npm run benchmark        # node scripts/benchmark.mjs
 ```
 Representative results (relative; chars/4 ≈ tokens):
-- **Lever 3 — Token reduction** (`terseProseAdvisor` on agent prose): 67 → 47 tok (**−30%**). Strips filler; code/output/errors untouched.
+- **Lever 3 — Token reduction** (`terseProseAdvisor` on agent prose): 67 → 46 tok (**−31%**). Strips filler; code/output/errors untouched.
 - **Lever 1 — Memory cleanup** (`pruneAdvisor` on a context window): 6 → 3 entries (**size −51%**). Drops duplicates + stale.
 - **Lever 2 — Operational precision** (`isRedundant` on a tool plan): flags 1 of 2 planned calls as redundant (cost saved).
 - **Lever 4 — Output discipline** (`toolOutputAdvisor` on verbose command output): 200 → 31 lines (−85%).
+- **Read-cache prevention** (`duplicateReads`): flags 2 of 4 planned reads as re-reads (cost saved).
 
 Each lever is an **advisor** the skill reasons with — it never auto-applies a change that could lose meaning.
 
@@ -89,7 +96,11 @@ Each lever is an **advisor** the skill reasons with — it never auto-applies a 
 ```bash
 npm run baseline -- ~/.claude/projects/<project>/<session>.jsonl
 ```
-Example (a long coding session): 289 turns, 264 tool calls, ~99M total tokens (95.4M cache-read, 1.8M fresh input, 1.97M output), 0 parse errors.
+Example (a long coding session): 289 turns, 264 tool calls, ~99M total tokens (95.4M
+cache-read, 1.8M fresh input, 1.97M output), 0 parse errors. The **cost estimate**
+(default Sonnet-ish pricing) puts such a session at **≈ $63.6** — cache-read ($28.6) and
+output ($29.6) dominate, not fresh input ($5.4), which is where compounding bites.
+The same report flags **edit cycles** (files edited >1×) as a one-shot-failure / retry signal.
 
 ## Comparison with caveman-it & concise-output
 
@@ -122,5 +133,6 @@ npm run lint     # eslint
 ```
 
 ## Status
-v0.1.0 — repo scaffold, Phase 0 baseline instrument, and the three lever advisors with tests.
-Phases 1→10 per `ROADMAP.md`.
+v0.3.0 — four lever advisors + read-cache + symbol-slice, a Phase 0 baseline with USD cost estimate
+and an edit-cycle retry proxy, context-discipline rules (SKILL + drop-in CLAUDE.md), all with tests.
+Phases 5→10 (validation/rollback infra, production hardening) per `ROADMAP.md`.

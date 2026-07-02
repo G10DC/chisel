@@ -18,6 +18,13 @@ Adjacent tools (surveyed, not vendored) and how Chisel relates:
 - **claude-token-efficient** (drop-in CLAUDE.md) → Chisel ships its own `CLAUDE.md`.
 - **claude-context** (Zilliz, semantic search) → out of scope (needs vector infra).
 - **token-optimizer** (ghost tokens / compaction) → future Lever-1 extension (compaction-aware pruning).
+- **ccusage** (offline cost reports from local JSONL) → Chisel's `estimateCost` + baseline is the lightweight, dependency-free counterpart.
+- **CodeBurn** (one-shot success rate; where tokens burn in edit→test→fix loops) → Chisel's `editCycles` / `repeatEdits` retry proxy captures the same signal.
+- **SuperClaude_Framework** (local cache of files read this session) → Chisel's `lib/reads.js` (`shouldRead` / `duplicateReads`) is the pure, FS-free advisor equivalent.
+- **claude-task-master** (decompose a PRD into isolated mini-sessions) → Chisel's context-discipline guidance ("plan first", session chaining) operationalizes the same isolation principle.
+- **claude-code-templates** (stack-specific CLAUDE.md, 800–1500 tok) → Chisel ships a generic, compact drop-in `CLAUDE.md` (stack profiles are future calibration work).
+- **Docling** (HTML/PDF/DOCX → Markdown, −33% to −90%) → Chisel's "Markdown-first" rule points here without vendoring a converter.
+- **claude-code-router** (route cheap tasks to cheaper/local models) → out of scope for a skill (needs a proxy process); noted as a complementary cost axis.
 
 ## Reuse (consolidated)
 - **context-mode MCP** + **Context-Engine** patterns for the memory layer (don't reinvent).

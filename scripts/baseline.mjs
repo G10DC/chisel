@@ -19,16 +19,25 @@ import { pathToFileURL } from 'node:url';
  * (the shape real Claude Code transcripts use). `tool_result` is not reliably in content, so it is
  * not reported.
  *
+ * Retry/waste proxy: file mutations (Edit/MultiEdit/Write/NotebookEdit) are tracked per target.
+ * `edits` counts mutation calls; `editCycles` counts files edited more than once (a one-shot-failure
+ * signal — the agent cycling edit→test→fix on the same file); `repeatEdits` is the repeat volume
+ * beyond each file's first edit. High values flag where tokens burn in fix loops.
+ *
  * @param {string} raw JSONL text
  * @returns {Object} metrics
  */
+const EDIT_TOOLS = new Set(['Edit', 'MultiEdit', 'Write', 'NotebookEdit']);
+
 export function analyzeTranscript(raw) {
   const lines = String(raw).split('\n').filter(Boolean);
   let turns = 0, toolCalls = 0;
   let inputTokens = 0, outputTokens = 0;
   let cacheCreationTokens = 0, cacheReadTokens = 0;
+  let edits = 0;
   let parseErrors = 0;
   const tools = new Map();
+  const editTargets = new Map();
 
   for (const line of lines) {
     let evt;
@@ -43,6 +52,11 @@ export function analyzeTranscript(raw) {
         toolCalls++;
         const name = block.name || 'unknown';
         tools.set(name, (tools.get(name) || 0) + 1);
+        if (EDIT_TOOLS.has(name)) {
+          edits++;
+          const p = block.input?.file_path || block.input?.notebook_path || block.input?.path;
+          if (p) editTargets.set(p, (editTargets.get(p) || 0) + 1);
+        }
       }
     }
 
@@ -55,6 +69,9 @@ export function analyzeTranscript(raw) {
     }
   }
 
+  const editCounts = [...editTargets.values()];
+  const editCycles = editCounts.filter((c) => c > 1).length;
+  const repeatEdits = editCounts.reduce((s, c) => s + Math.max(0, c - 1), 0);
   const totalInputTokens = inputTokens + cacheCreationTokens + cacheReadTokens;
   return {
     turns,
@@ -66,9 +83,39 @@ export function analyzeTranscript(raw) {
     totalInputTokens,
     totalTokens: totalInputTokens + outputTokens,
     toolsPerTurn: turns ? Number((toolCalls / turns).toFixed(2)) : 0,
+    edits,
+    editCycles,
+    repeatEdits,
     parseErrors,
     tools: Object.fromEntries([...tools.entries()].sort((a, b) => b[1] - a[1])),
   };
+}
+
+/**
+ * Default pricing (USD per 1M tokens), Claude-Sonnet-ish: cache read ≈ 0.1x, cache write ≈ 1.25x
+ * of the fresh-input price. Override per model via the `pricing` argument.
+ */
+export const DEFAULT_PRICING = {
+  inputPerMillion: 3,
+  cacheWritePerMillion: 3.75,
+  cacheReadPerMillion: 0.3,
+  outputPerMillion: 15,
+};
+
+/**
+ * Estimates USD cost from token metrics, weighted by component (cache reads are ~30x cheaper than
+ * fresh input; output is the most expensive). Aligns the baseline with tools like ccusage.
+ * @param {Object} m metrics (inputTokens, cacheCreationTokens, cacheReadTokens, outputTokens)
+ * @param {Object} [pricing] USD per 1M tokens
+ * @returns {{input:number, cacheWrite:number, cacheRead:number, output:number, total:number, pricing:Object}}
+ */
+export function estimateCost(m, pricing = DEFAULT_PRICING) {
+  const M = 1_000_000;
+  const input = (m.inputTokens || 0) / M * pricing.inputPerMillion;
+  const cacheWrite = (m.cacheCreationTokens || 0) / M * pricing.cacheWritePerMillion;
+  const cacheRead = (m.cacheReadTokens || 0) / M * pricing.cacheReadPerMillion;
+  const output = (m.outputTokens || 0) / M * pricing.outputPerMillion;
+  return { input, cacheWrite, cacheRead, output, total: input + cacheWrite + cacheRead + output, pricing };
 }
 
 function main() {
@@ -78,7 +125,8 @@ function main() {
     process.exit(2);
   }
   const metrics = analyzeTranscript(fs.readFileSync(file, 'utf-8'));
-  console.log(JSON.stringify({ file, ...metrics }, null, 2));
+  const cost = estimateCost(metrics);
+  console.log(JSON.stringify({ file, ...metrics, cost }, null, 2));
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) main();

@@ -5,7 +5,7 @@ description: Minimize token usage across four levers — concise prose, clean me
 
 # Chisel
 
-Cut tokens, keep quality. Three levers, applied in order. One rule above all:
+Cut tokens, keep quality. Four levers, applied in order. One rule above all:
 **measure the baseline before optimizing; never ship a change that degrades quality.**
 
 ## Golden rules
@@ -39,6 +39,19 @@ Cut tokens, keep quality. Three levers, applied in order. One rule above all:
 
 ## Code navigation
 - Read only the symbol you need, not the whole file (function/block extraction by name).
+- Don't re-read files already in context — check the read set first (`lib/reads.js`).
+
+## Context discipline (window budget, not word count)
+The biggest token sink is an over-filled window: retrieval drops (92%→78% from 256K→1M tokens) and
+reasoning depth falls as the session grows. A 500K-token session scores worse than a 200K one.
+- **Stay under ~120K tokens / 12% of the window.** The large window is insurance, not a target.
+- **Compact manually at ~60%**: ask for a summary → `/clear` → paste it. Never trust auto-compact
+  at 95% (it runs at peak degradation, loses 70–80% of detail).
+- **On an error, `/rewind`** to drop the failed turn; don't reason further over poisoned context.
+- **Plan first.** ~3K tokens of plan up front avoids ~20K of edit→test→fix retries.
+- **Markdown first.** Convert HTML/PDF/DOCX to Markdown before feeding (HTML −90%, PDF −65/70%,
+  DOCX −33%).
+- **`/btw` for lateral questions** (regex, syntax) that must not pollute the history.
 
 ## When NOT to compress
 - Errors, failures, security warnings — full fidelity always.
@@ -46,9 +59,10 @@ Cut tokens, keep quality. Three levers, applied in order. One rule above all:
 - When in doubt: clarity beats brevity.
 
 ## Tools (reason with these, don't auto-apply)
-- `scripts/baseline.mjs <transcript.jsonl>` — token/tool/turn metrics (Phase 0).
+- `scripts/baseline.mjs <transcript.jsonl>` — token/tool/turn metrics, USD cost estimate, and an edit-cycle retry proxy (Phase 0).
 - `lib/memory.js` `pruneAdvisor` — flags stale/duplicate context entries.
 - `lib/precision.js` `estimateToolCost` / `isRedundant` — tool-cost + redundancy checks.
+- `lib/reads.js` `shouldRead` / `duplicateReads` — flags re-reads of files already in context.
 - `lib/compress.js` `terseProseAdvisor` — filler reduction for the agent's PROSE only (never apply to code/output/errors; it auto-skips text that looks structured).
 - `lib/output.js` `toolOutputAdvisor` — trims verbose tool/command output to head + tail + count.
 - `lib/symbols.js` `symbolSlice` — extracts a single function/block by name (read the symbol, not the file).

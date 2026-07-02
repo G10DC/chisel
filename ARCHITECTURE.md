@@ -15,9 +15,11 @@ user intent
 │                              detect done-state and stop early                 │
 │  3. Token Reduction  ──► compress language (syntactic → optional semantic)   │
 │  4. Output Discipline ──► trim verbose tool output (head + tail + count)      │
+│  +  Read-cache ──► no re-reads of files already in context                    │
 │  +  Code navigation ──► read a symbol, not the whole file                     │
 │                                                                              │
-│  cross-cutting:  Measure (baseline + per-step) · Validate · Log · Toggle     │
+│  cross-cutting:  Measure (baseline + cost + edit-cycle) · Context discipline  │
+│                   (window budget) · Validate · Log · Toggle                  │
 └──────────────────────────────────────────────────────────────────────────────┘
    │
    ▼
@@ -40,8 +42,26 @@ quality + cost telemetry ──► A/B vs. baseline ──► keep / rollback
 - **Mechanisms**:
   - **Tool cost model** + routing — suppress redundant/overlapping tool calls, batch safe ones.
   - **Early stopping** — detect verifiable done-states and halt.
+  - **Read-cache** (`lib/reads.js`) — flag re-reads of files already in context (no FS access, pure
+    path comparison).
 - **Anti-pattern avoided**: ECC's "operating system for agents" (261+ skills) = over-engineering.
   Chisel keeps this layer small and measurable.
+
+### Cross-cutting — Context discipline
+- **Responsibility**: the *window* is the largest token sink; an over-filled window degrades both
+  cost and quality (retrieval 92%→78% from 256K→1M tokens; reasoning depth falls).
+- **Rules** (in `SKILL.md` + drop-in `CLAUDE.md`): stay under ~120K tokens / 12% of the window;
+  compact manually at ~60% (never auto-compact at 95%); `/rewind` on errors; plan first; feed
+  Markdown not HTML/PDF/DOCX; `/btw` for lateral questions.
+- **Non-runtime**: these are operational guidance, not a hook — they cost zero and compound with
+  every lever.
+
+### Cross-cutting — Measure
+- **Phase 0 baseline** (`scripts/baseline.mjs`): tokens (incl. cache), tool calls, turns.
+- **Cost estimate** (`estimateCost`): per-component USD weighting (cache read ≈ 0.1×, cache write
+  ≈ 1.25×, output most expensive) — aligns with ccusage-style offline reporting.
+- **Retry proxy** (`editCycles` / `repeatEdits`): files edited more than once signal one-shot
+  failures / fix loops (the CodeBurn "where tokens burn" lens).
 
 ### Layer 3 — Token Reduction
 - **Responsibility**: say the same thing in fewer tokens.

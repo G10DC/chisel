@@ -18,7 +18,7 @@ Token estimate = chars / 4 (rough; the **relative reduction** is the comparison)
 
 | Skill | Version | Mechanism | Code-safe | Strength |
 |---|---|---|---|---|
-| **chisel** | 0.1.0 | filler removal + code-safe guard (real deterministic function `terseProseAdvisor`) | ✅ yes | safe reduction; code/output/errors preserved |
+| **chisel** | 0.3.0 | filler removal + code-safe guard (real deterministic function `terseProseAdvisor`) | ✅ yes | safe reduction; code/output/errors preserved |
 | **caveman-it** | unversioned (user skill) | no pleasantries + no filler (deterministic approximation of its declared rules) | ❌ no | most aggressive on prose filler |
 | **concise-output** | unversioned (user skill) | no filler + cap to 3 blocks (deterministic approximation of its declared rules) | ❌ no | largest cut on long output (truncates — lossy) |
 
@@ -44,6 +44,28 @@ Token estimate = chars / 4 (rough; the **relative reduction** is the comparison)
 `toolOutputAdvisor` (Lever 4) on a 200-line test-run sample: **200 → 31 lines (≈1323 → 202 tok,
 −85%)** — the largest single cut, because verbose tool/command output is the biggest token sink.
 Code-safe: no line is altered, only a contiguous middle run is elided with a count marker.
+
+`terseProseAdvisor` (Lever 3) on agent prose: **67 → 46 tok (−31%)**. Strips filler/openers (EN+IT);
+code/output/errors untouched.
+
+## Read-cache prevention
+
+`duplicateReads` (Lever 1/2 extension) on a 4-read plan against 3 files already in context:
+**2 of 4 reads flagged as re-reads** (est. cost saved: 2× the Read cost). Re-reading a file already in
+context pays for the same bytes twice; this advisor surfaces them before they run. Pure: it only
+compares normalized paths, never touches the filesystem or the context.
+
+## Baseline cost estimate
+
+`estimateCost` (Phase 0) weights the four token components with a pricing model (default
+Claude-Sonnet-ish: fresh input $3, cache write $3.75, cache read $0.30, output $15 per 1M tokens).
+On the long-session shape from the README (~99M tokens: 95.4M cache-read, 1.97M output, 1.8M fresh
+input): **≈ $63.6 total** — cache-read $28.6 and output $29.6 dominate, fresh input is only $5.4.
+
+This aligns the baseline with tools like **ccusage** (offline cost reports from local JSONL): Chisel
+exposes the components; multiplying by any model's per-million prices yields the estimate. The same
+baseline report flags **edit cycles** (files edited more than once) as a one-shot-failure / retry
+signal (the CodeBurn "where does the AI burn tokens in edit→test→fix loops" idea).
 
 ## Scope & method
 

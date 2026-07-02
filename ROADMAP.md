@@ -4,15 +4,20 @@ Ordering principle: **baseline first, optimize later, validate each layer indepe
 if the quality gate fails.** Phases 0→6 are the core path; 7→9 are optional and gated on prior
 success; 10 hardens for production.
 
-## Shipped (v0.1–v0.2)
+## Shipped (v0.1–v0.3)
 Already implemented as **pure, tested advisors** (ahead of the phased rollout — the measurable
 building blocks the phases operationalize):
-- **Phase 0** — `scripts/baseline.mjs`: transcript metrics (tokens incl. cache, tool calls, turns).
+- **Phase 0** — `scripts/baseline.mjs`: transcript metrics (tokens incl. cache, tool calls, turns),
+  a **USD cost estimate** (`estimateCost`, per-component weighting), and an **edit-cycle retry proxy**
+  (`edits` / `editCycles` / `repeatEdits`).
 - **Lever 1** — `lib/memory.js` `pruneAdvisor` (stale/duplicate context).
 - **Lever 2** — `lib/precision.js` `estimateToolCost` / `isRedundant` (tool cost + redundancy).
 - **Lever 3** — `lib/compress.js` `terseProseAdvisor` (lossless, EN+IT, code-safe).
 - **Lever 4** — `lib/output.js` `toolOutputAdvisor` (trim verbose tool output: −85% on a 200-line sample).
+- **Read-cache** — `lib/reads.js` `shouldRead` / `duplicateReads` (flag re-reads of files already in context).
 - **Code navigation** — `lib/symbols.js` `symbolSlice` (extract one function/block by name).
+- **Context discipline** — operational rules in `SKILL.md` + drop-in `CLAUDE.md`: ~120K budget,
+  manual compact at ~60%, `/rewind` on errors, plan-first, Markdown-first, `/btw`.
 - **Drop-in** — `CLAUDE.md` terse rules for any project.
 
 Phases 5+ (validation/rollback infra, progressive rollout, production hardening) remain the gating

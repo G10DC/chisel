@@ -9,6 +9,8 @@ import { pruneAdvisor } from '../lib/memory.js';
 import { estimateToolCost, isRedundant } from '../lib/precision.js';
 import { terseProseAdvisor } from '../lib/compress.js';
 import { toolOutputAdvisor } from '../lib/output.js';
+import { duplicateReads } from '../lib/reads.js';
+import { estimateCost } from './baseline.mjs';
 
 const estTokens = (s) => Math.ceil(String(s).length / 4);
 const pct = (a, b) => (b ? Math.round(((b - a) / b) * 100) : 0);
@@ -69,11 +71,34 @@ function benchOutput() {
   return { beforeLines: lines.length, afterLines: trimmed.split('\n').length, before, after, reduction: pct(after, before) };
 }
 
+// Read-cache prevention: flag planned reads of files already in context (re-reads = wasted tokens).
+function benchReads() {
+  const alreadyRead = ['/src/a.js', '/src/b.js', '/src/c.js'];
+  const plan = [
+    { name: 'Read', args: { file_path: '/src/a.js' } },  // already in context
+    { name: 'Read', args: { file_path: '/src/b.js' } },  // already in context
+    { name: 'Read', args: { file_path: '/src/d.js' } },  // new
+    { name: 'Read', args: { file_path: '/src/e.js' } },  // new
+  ];
+  const reReads = duplicateReads(plan, alreadyRead).length;
+  const savedCost = reReads * estimateToolCost('Read'); // each avoided Read
+  return { planned: plan.length, reReads, savedCost };
+}
+
+// Baseline cost estimate on a long-session shape (cache-read dominates the bill).
+function benchCost() {
+  const m = { inputTokens: 1_800_000, cacheCreationTokens: 0, cacheReadTokens: 95_400_000, outputTokens: 1_970_000 };
+  const c = estimateCost(m);
+  return c;
+}
+
 function main() {
   const c = benchCompress();
   const m = benchMemory();
   const p = benchPrecision();
   const o = benchOutput();
+  const r = benchReads();
+  const $ = benchCost();
 
   console.log('# Chisel lever benchmark\n');
   console.log('Estimates are relative (chars/4 ≈ tokens); the point is the reduction, not absolutes.\n');
@@ -89,6 +114,12 @@ function main() {
 
   console.log('Lever 4 — Output discipline  (toolOutputAdvisor on verbose command output)');
   console.log(`  ${o.beforeLines} lines  ->  ${o.afterLines} lines   (${o.before} tok -> ${o.after} tok, -${o.reduction}%)\n`);
+
+  console.log('Read-cache prevention  (duplicateReads on a planned read sequence)');
+  console.log(`  ${r.planned} planned reads  ->  ${r.reReads} flagged as re-reads   (est. cost saved: ${r.savedCost})\n`);
+
+  console.log('Baseline — Cost estimate  (estimateCost on a ~99M-token session, default pricing)');
+  console.log(`  total $${$.total.toFixed(2)}   (cache-read $${$.cacheRead.toFixed(2)}, output $${$.output.toFixed(2)}, fresh input $${$.input.toFixed(2)})\n`);
 
   console.log('Each lever is an ADVISOR the skill reasons with — it never auto-applies a change');
   console.log('that could lose meaning. Code/output/errors are left untouched (see terseProseAdvisor guard).');
