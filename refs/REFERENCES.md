@@ -3,15 +3,15 @@
 ## Reference repositories (state of the art)
 - https://github.com/JuliusBrussee/caveman — terse/style compression
 - https://github.com/affaan-m/ECC — agent "operating system" (over-engineering cautionary tale)
-- https://github.com/Context-Engine-AI/Context-Engine — semantic memory via MCP
+- https://github.com/Context-Engine-agent/Context-Engine — semantic memory via MCP
 - https://github.com/huggingface/tokenizers — token-boundary reference (Rust)
 - https://github.com/tonl-dev/tonl — compact serialization
 - https://github.com/quantumaikr/quant.cpp — KV-cache compression
 
 ## Tooling to reuse (not reinvent)
-- **Claude Code** skill format + harness hooks (pre-tool / pre-step / pre-response intercept points)
+- **Agent environment** skill format + harness hooks (pre-tool / pre-step / pre-response intercept points)
 - **context-mode MCP** — pull-based context management
-- **@ai-sdk/anthropic** / **ai** package — API plumbing
+- **@ai-sdk/provider** / **ai** package — API plumbing
 - **huggingface/tokenizers** — token-boundary reasoning (reference only)
 
 ## Further reading

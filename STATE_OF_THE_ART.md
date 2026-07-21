@@ -6,7 +6,7 @@ Six reference repositories. Each yields a **reuse** lesson and an **avoid** less
 |---|---|---|---|
 | **JuliusBrussee/caveman** | Style-preserving compression (terse output) | The terse-output pattern; the "say less, same meaning" stance. | Its `curl \| bash` install; unverified "75% reduction" claims (no baseline). |
 | **affaan-m/ECC** | "Operating system for agents" — 261+ skills, cross-harness, instincts layers | Ambition of composability across harnesses. | Over-engineering: scope爆炸 makes it unmaintainable and unauditable. Chisel stays small. |
-| **Context-Engine-AI/Context-Engine** | Semantic search + memory persistence via MCP | Pull-based context + MCP integration for the memory layer. | API-key handling exposure — treat secrets as a first-class security concern. |
+| **Context-Engine-agent/Context-Engine** | Semantic search + memory persistence via MCP | Pull-based context + MCP integration for the memory layer. | API-key handling exposure — treat secrets as a first-class security concern. |
 | **huggingface/tokenizers** | High-performance tokenization (Rust) | **Reference** for token-boundary behavior — understand where tokens break. | Don't pull it in as a heavy runtime dependency; use it to reason, not to run. |
 | **tonl-dev/tonl** | Compact serialization | Compact-encoding patterns for dense data. | Query-injection surfaces — validate all inputs that feed serialization. |
 | **quantumaikr/quant.cpp** | KV-cache compression | Memory-footprint reduction thinking (compress what's cached). | Memory-safety hazards in low-level compression — favor safe, validated transforms. |
@@ -15,20 +15,20 @@ Six reference repositories. Each yields a **reuse** lesson and an **avoid** less
 Adjacent tools (surveyed, not vendored) and how Chisel relates:
 - **RTK** (terminal-output proxy) and **token-optimizer-mcp** (caches tool output) → Chisel's Lever 4 (`toolOutputAdvisor`) is the lightweight, code-safe equivalent.
 - **Token Savior** / **code-review-graph** (symbol/graph navigation) → Chisel's `symbolSlice` is the zero-dependency heuristic counterpart.
-- **claude-token-efficient** (drop-in CLAUDE.md) → Chisel ships its own `CLAUDE.md`.
-- **claude-context** (Zilliz, semantic search) → out of scope (needs vector infra).
+- **agent-token-efficient** (drop-in AGENT.md) → Chisel ships its own `AGENT.md`.
+- **agent-context** (Zilliz, semantic search) → out of scope (needs vector infra).
 - **token-optimizer** (ghost tokens / compaction) → future Lever-1 extension (compaction-aware pruning).
 - **ccusage** (offline cost reports from local JSONL) → Chisel's `estimateCost` + baseline is the lightweight, dependency-free counterpart.
 - **CodeBurn** (one-shot success rate; where tokens burn in edit→test→fix loops) → Chisel's `editCycles` / `repeatEdits` retry proxy captures the same signal.
 - **SuperClaude_Framework** (local cache of files read this session) → Chisel's `lib/reads.js` (`shouldRead` / `duplicateReads`) is the pure, FS-free advisor equivalent.
-- **claude-task-master** (decompose a PRD into isolated mini-sessions) → Chisel's context-discipline guidance ("plan first", session chaining) operationalizes the same isolation principle.
-- **claude-code-templates** (stack-specific CLAUDE.md, 800–1500 tok) → Chisel ships a generic, compact drop-in `CLAUDE.md` (stack profiles are future calibration work).
+- **agent-task-master** (decompose a PRD into isolated mini-sessions) → Chisel's context-discipline guidance ("plan first", session chaining) operationalizes the same isolation principle.
+- **agent-code-templates** (stack-specific AGENT.md, 800–1500 tok) → Chisel ships a generic, compact drop-in `AGENT.md` (stack profiles are future calibration work).
 - **Docling** (HTML/PDF/DOCX → Markdown, −33% to −90%) → Chisel's "Markdown-first" rule points here without vendoring a converter.
-- **claude-code-router** (route cheap tasks to cheaper/local models) → out of scope for a skill (needs a proxy process); noted as a complementary cost axis.
+- **agent-code-router** (route cheap tasks to cheaper/local models) → out of scope for a skill (needs a proxy process); noted as a complementary cost axis.
 
 ## Reuse (consolidated)
 - **context-mode MCP** + **Context-Engine** patterns for the memory layer (don't reinvent).
-- **@ai-sdk/anthropic** and the `ai` package for API plumbing.
+- **@ai-sdk/provider** and the `ai` package for API plumbing.
 - **caveman**'s terse-output stance for the conservative-compression layer (Phase 4).
 - **huggingface/tokenizers** as a *reference* for token boundaries (not a runtime dep).
 - **tonl** compact-serialization patterns where dense payloads appear.

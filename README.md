@@ -1,6 +1,6 @@
 # Chisel 🔨
 
-A **Claude Code skill** that minimizes token consumption across four complementary levers —
+A **Agent skill** that minimizes token consumption across four complementary levers —
 **word reduction, clean memory, precise action, lean output** — **without reducing performance**.
 Bilingual (**English + Italian**) and **code-safe** (never alters code, strings, or output).
 
@@ -39,12 +39,12 @@ better.
 ## Repository layout
 ```
 chisel/
-├── SKILL.md             # the Claude Code skill (frontmatter + 4 levers)
+├── SKILL.md             # the Agent skill (frontmatter + 4 levers)
 ├── README.md            # this file — vision + principles
-├── CLAUDE.md            # drop-in token-discipline rules for any project
+├── AGENT.md            # drop-in token-discipline rules for any project
 ├── REQUIREMENTS.md      # functional + non-functional requirements (FR/NFR)
 ├── ROADMAP.md           # action plan: Phase 0→10, milestones, exit criteria
-├── ARCHITECTURE.md      # intercept design + Claude Code integration
+├── ARCHITECTURE.md      # intercept design + Agent environment integration
 ├── RISKS.md             # risk register + mitigations
 ├── STATE_OF_THE_ART.md  # reference repos: what to reuse / avoid
 ├── scripts/
@@ -65,18 +65,18 @@ chisel/
 
 ## Install
 
-Chisel is a Claude Code **skill**: make the repo discoverable in the skills directory. No build step, no runtime dependencies.
+Chisel is a Agent environment **skill**: make the repo discoverable in the skills directory. No build step, no runtime dependencies.
 
 **Option A — local development (symlink; live edits are picked up):**
 ```bash
 cd /path/to/chisel
-ln -sf "$PWD" ~/.claude/skills/chisel
+ln -sf "$PWD" ~/.gemini/config/skills/chisel
 ```
 **Option B — stable use (copy):**
 ```bash
-cp -R /path/to/chisel ~/.claude/skills/chisel
+cp -R /path/to/chisel ~/.gemini/config/skills/chisel
 ```
-**Verify:** start a new Claude Code session — Chisel appears among the available skills and is invoked when a task matches its description. Remove with `rm ~/.claude/skills/chisel`.
+**Verify:** start a new Agent environment session — Chisel appears among the available skills and is invoked when a task matches its description. Remove with `rm ~/.gemini/config/skills/chisel`.
 
 ## Benchmark — what each lever does
 
@@ -94,7 +94,7 @@ Each lever is an **advisor** the skill reasons with — it never auto-applies a 
 
 ### Phase 0 baseline on a real session
 ```bash
-npm run baseline -- ~/.claude/projects/<project>/<session>.jsonl
+npm run baseline -- ~/.agent/projects/<project>/<session>.jsonl
 ```
 Example (a long coding session): 289 turns, 264 tool calls, ~99M total tokens (95.4M
 cache-read, 1.8M fresh input, 1.97M output), 0 parse errors. The **cost estimate**
@@ -134,5 +134,5 @@ npm run lint     # eslint
 
 ## Status
 v0.3.0 — four lever advisors + read-cache + symbol-slice, a Phase 0 baseline with USD cost estimate
-and an edit-cycle retry proxy, context-discipline rules (SKILL + drop-in CLAUDE.md), all with tests.
+and an edit-cycle retry proxy, context-discipline rules (SKILL + drop-in AGENT.md), all with tests.
 Phases 5→10 (validation/rollback infra, production hardening) per `ROADMAP.md`.

@@ -1,6 +1,6 @@
-# CLAUDE.md — token discipline (drop-in from Chisel)
+# AGENT.md — token discipline (drop-in from Chisel)
 
-Compact rules to cut tokens without losing quality. Drop into your project as `CLAUDE.md`
+Compact rules to cut tokens without losing quality. Drop into your project as `AGENT.md`
 (or merge the rules into your existing one). See the `chisel` skill for the matching advisors.
 
 ## Output

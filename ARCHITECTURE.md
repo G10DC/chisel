@@ -23,7 +23,7 @@ user intent
 └──────────────────────────────────────────────────────────────────────────────┘
    │
    ▼
-agent execution (Claude Code harness)
+agent execution (Agent environment harness)
    │
    ▼
 quality + cost telemetry ──► A/B vs. baseline ──► keep / rollback
@@ -35,7 +35,7 @@ quality + cost telemetry ──► A/B vs. baseline ──► keep / rollback
 - **Responsibility**: keep the working context lean and high-signal.
 - **Mechanisms**: staleness eviction, near-duplicate dedup, cold-segment summarization.
 - **Integration**: reuses the **context-mode MCP** (pull-based context) rather than reimplementing.
-- **Reference**: Context-Engine-AI/Context-Engine (semantic memory via MCP).
+- **Reference**: Context-Engine-agent/Context-Engine (semantic memory via MCP).
 
 ### Layer 2 — Operational Precision
 - **Responsibility**: do no more than necessary.
@@ -50,7 +50,7 @@ quality + cost telemetry ──► A/B vs. baseline ──► keep / rollback
 ### Cross-cutting — Context discipline
 - **Responsibility**: the *window* is the largest token sink; an over-filled window degrades both
   cost and quality (retrieval 92%→78% from 256K→1M tokens; reasoning depth falls).
-- **Rules** (in `SKILL.md` + drop-in `CLAUDE.md`): stay under ~120K tokens / 12% of the window;
+- **Rules** (in `SKILL.md` + drop-in `AGENT.md`): stay under ~120K tokens / 12% of the window;
   compact manually at ~60% (never auto-compact at 95%); `/rewind` on errors; plan first; feed
   Markdown not HTML/PDF/DOCX; `/btw` for lateral questions.
 - **Non-runtime**: these are operational guidance, not a hook — they cost zero and compound with
@@ -75,11 +75,11 @@ quality + cost telemetry ──► A/B vs. baseline ──► keep / rollback
 - **Mechanism**: head + tail window with an omission count; never alters individual lines.
 - **Code navigation** (auxiliary): `symbolSlice` reads one function/block by name, not the whole file.
 
-## Claude Code integration
-- Implemented as a **Claude Code skill** (this repo) consumed by the harness.
+## Agent environment integration
+- Implemented as a **Agent skill** (this repo) consumed by the harness.
 - Hooks into the agent loop at the natural intercept points (pre-tool, pre-step, pre-response).
 - Leverages **context-mode MCP** for memory/context operations (composable, not reinvented).
-- Leverages **@ai-sdk/anthropic** / `ai` packages for API plumbing where relevant.
+- Leverages **@ai-sdk/provider** / `ai` packages for API plumbing where relevant.
 - Four runtime **levers** (memory / precision / reduction / output) + a **master kill-switch**; each is
   independently toggleable and logged.
 

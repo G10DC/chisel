@@ -66,4 +66,4 @@ reasoning depth falls as the session grows. A 500K-token session scores worse th
 - `lib/compress.js` `terseProseAdvisor` — filler reduction for the agent's PROSE only (never apply to code/output/errors; it auto-skips text that looks structured).
 - `lib/output.js` `toolOutputAdvisor` — trims verbose tool/command output to head + tail + count.
 - `lib/symbols.js` `symbolSlice` — extracts a single function/block by name (read the symbol, not the file).
-- `CLAUDE.md` — drop-in token-discipline rules for any project.
+- `AGENT.md` — drop-in token-discipline rules for any project.

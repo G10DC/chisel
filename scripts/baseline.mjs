@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // scripts/baseline.mjs
-// Phase 0 baseline instrumentation: metrics from a Claude Code transcript (JSONL).
+// Phase 0 baseline instrumentation: metrics from a Agent environment transcript (JSONL).
 // Usage: node scripts/baseline.mjs <transcript.jsonl>
 
 import fs from 'node:fs';
@@ -10,13 +10,13 @@ import { pathToFileURL } from 'node:url';
  * Analyzes a JSONL transcript and returns baseline metrics. Pure (no I/O).
  * Tolerant of unknown event shapes (skips unparseable lines and metadata-only events).
  *
- * Token semantics (Anthropic usage): `input_tokens` EXCLUDES cached tokens; cache reads/writes
+ * Token semantics (Engine Provider usage): `input_tokens` EXCLUDES cached tokens; cache reads/writes
  * are reported separately in `cache_read_input_tokens` / `cache_creation_input_tokens`. We expose
  * all four components so a real cost estimate can weight them (cache read ≈ 0.1x, cache write
  * ≈ 1.25x of the base input price). `totalInputTokens` sums the three input components.
  *
  * Tool semantics: only `tool_use` blocks inside an assistant `message.content` array are counted
- * (the shape real Claude Code transcripts use). `tool_result` is not reliably in content, so it is
+ * (the shape real Agent environment transcripts use). `tool_result` is not reliably in content, so it is
  * not reported.
  *
  * Retry/waste proxy: file mutations (Edit/MultiEdit/Write/NotebookEdit) are tracked per target.
@@ -92,7 +92,7 @@ export function analyzeTranscript(raw) {
 }
 
 /**
- * Default pricing (USD per 1M tokens), Claude-Sonnet-ish: cache read ≈ 0.1x, cache write ≈ 1.25x
+ * Default pricing (USD per 1M tokens), Agent-Sonnet-ish: cache read ≈ 0.1x, cache write ≈ 1.25x
  * of the fresh-input price. Override per model via the `pricing` argument.
  */
 export const DEFAULT_PRICING = {

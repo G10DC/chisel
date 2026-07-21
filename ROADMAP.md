@@ -16,9 +16,9 @@ building blocks the phases operationalize):
 - **Lever 4** — `lib/output.js` `toolOutputAdvisor` (trim verbose tool output: −85% on a 200-line sample).
 - **Read-cache** — `lib/reads.js` `shouldRead` / `duplicateReads` (flag re-reads of files already in context).
 - **Code navigation** — `lib/symbols.js` `symbolSlice` (extract one function/block by name).
-- **Context discipline** — operational rules in `SKILL.md` + drop-in `CLAUDE.md`: ~120K budget,
+- **Context discipline** — operational rules in `SKILL.md` + drop-in `AGENT.md`: ~120K budget,
   manual compact at ~60%, `/rewind` on errors, plan-first, Markdown-first, `/btw`.
-- **Drop-in** — `CLAUDE.md` terse rules for any project.
+- **Drop-in** — `AGENT.md` terse rules for any project.
 
 Phases 5+ (validation/rollback infra, progressive rollout, production hardening) remain the gating
 work before a production release.
