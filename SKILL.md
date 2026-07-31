@@ -1,79 +1,51 @@
 ---
 name: chisel
-description: Minimize token usage across four levers — concise prose, clean memory, precise action, lean output — without degrading output quality. Bilingual (English + Italian) and code-safe (never alters code/strings/output). Use on long sessions, large contexts, repetitive tool calls, or when cost/latency matter. Measure before optimizing; never trade quality for tokens.
+description: Compresses and prunes conversational context in-flight to prevent context rot — word-level compression, stale-turn pruning, duplicate tool-call detection, and output truncation with head/tail summaries. Use for/when the context window is filling up mid-task, an agent starts repeating tool calls, or logs/outputs are flooding the transcript. Never compress code, regex, or literal strings; never trigger a full sandbox restart (use portage) or a filesystem rollback (use chronicle-session-memory) — chisel only prunes conversational context, it never touches disk state.
 ---
 
-# Chisel
+# chisel
 
-Cut tokens, keep quality. Four levers, applied in order. One rule above all:
-**measure the baseline before optimizing; never ship a change that degrades quality.**
+Long-running agent sessions degrade semantically long before they run out of tokens — noise
+crowds out signal. One rule above all: **reduce token load without ever touching semantic
+payload, code, or literal strings.**
 
 ## Golden rules
-1. **Quality is the metric, not tokens.** A saving that loses correctness is a bug.
-2. **Measure first.** Run `scripts/baseline.mjs` on a transcript before and after any change.
-3. **Say less, same meaning.** No filler, no preamble, no restating the request.
-4. **Read once, remember.** Don't re-read files already in context; prefer search/execute over bulk reads.
-5. **Act, don't narrate.** Drop "let me…", "I'll now…", "here's what I'll do".
-6. **Stop when done.** No speculative follow-ups, recaps, or "let me know if…" unless asked.
 
-## Lever 1 — Clean memory
-- Prefer **search/execute over read** for large outputs (`ctx_search`, `ctx_execute_file`).
-- Drop stale context: a fact used once and not recurring should not be echoed.
-- Deduplicate: never paste the same large block twice.
-- Before a big read, ask: can a smaller query get the answer?
+1. **Code is untouchable.** Under no circumstances compress or alter code syntax, regex
+   patterns, or literal strings — this is a hard boundary, not a tuning knob.
+2. **Measure before optimizing.** Run `scripts/baseline.mjs` to establish a turn-by-turn token
+   baseline before applying any lever; optimization without a baseline is guessing.
+3. **Prune by age and redundancy, not by size alone.** Stale turns and outdated terminal output
+   are candidates for deletion; large-but-current context is not.
+4. **Deduplicate before truncating.** Catching a repeated `list_dir`/`cat` in consecutive turns
+   (lever 3) is cheaper than truncating its output after the fact (lever 4) — apply routing
+   before output discipline.
+5. **Truncation must stay reversible in spirit.** Head/tail summaries with total line counts let
+   the agent ask for the missing middle; silent deletion does not.
 
-## Lever 2 — Precise action
-- Before a tool call, confirm it is not redundant with one already in context.
-- Batch independent calls; don't serialize what can parallelize.
-- **Early stop**: when the request is satisfied, stop. No speculative extra steps.
+## The 4 levers
 
-## Lever 3 — Word reduction
-- Densest correct form: code first, prose only if needed.
-- Terse by default: fragments over sentences when unambiguous.
-- No restating the user's words back. No ceremonial openers or closers.
-- Bilingual (EN + IT) and code-safe: strips filler/openers in both languages, never alters code, strings, or output.
+1. **Token Reduction** (`lib/compress.js`) — bilingual (EN/IT) word compression of prompts and
+   thinking blocks, semantic payload untouched.
+2. **Memory Cleanup** (`lib/memory.js`, `pruneAdvisor`) — flags stale turns and dead terminal
+   output by age + redundancy.
+3. **Operational Precision** (`lib/precision.js`) — intercepts duplicate read/tool-call
+   operations across consecutive turns.
+4. **Output Discipline** (`lib/output.js`, `toolOutputAdvisor`) — truncates oversized command
+   output into head(N)/tail(M)/total-lines summaries.
 
-## Lever 4 — Output discipline
-- Trim verbose tool/command output (tests, logs, `find`) to head + tail + an omission count; don't dump hundreds of lines.
-- Never alter individual lines — only elide a contiguous middle run.
+## When to use
 
-## Code navigation
-- Read only the symbol you need, not the whole file (function/block extraction by name).
-- Don't re-read files already in context — check the read set first (`lib/reads.js`).
-
-## Context discipline (window budget, not word count)
-The biggest token sink is an over-filled window: retrieval drops (92%→78% from 256K→1M tokens) and
-reasoning depth falls as the session grows. A 500K-token session scores worse than a 200K one.
-- **Stay under ~120K tokens / 12% of the window.** The large window is insurance, not a target.
-- **Compact manually at ~60%**: ask for a summary → `/clear` → paste it. Never trust auto-compact
-  at 95% (it runs at peak degradation, loses 70–80% of detail).
-- **On an error, `/rewind`** to drop the failed turn; don't reason further over poisoned context.
-- **Plan first.** ~3K tokens of plan up front avoids ~20K of edit→test→fix retries.
-- **Markdown first.** Convert HTML/PDF/DOCX to Markdown before feeding (HTML −90%, PDF −65/70%,
-  DOCX −33%).
-- **`/btw` for lateral questions** (regex, syntax) that must not pollute the history.
-
-## When NOT to compress
-- Errors, failures, security warnings — full fidelity always.
-- Anything the user must verify verbatim.
-- When in doubt: clarity beats brevity.
+- Context window usage is climbing and semantic degradation is visible (repeated questions,
+  lost earlier decisions within the *same* running session).
+- An agent repeats a read operation it already performed this turn or the previous one.
+- A tool call returns a wall of log output that would otherwise flood the transcript.
 
 ## When NOT to use
-- **Need to restart the sandbox or clean the environment**: If the session context is heavily degraded or you need a clean agent session with a state handoff → use `portage` instead.
-- **Rollback or filesystem session checkpointing**: For persisting/rolling back filesystem states and generating cryptographic state hashes → use `chronicle-session-memory` instead.
-- **Pruning conversation text vs filesystem state**: For conversation cleanup only, do not mutate state; use `chisel`/`portage` for text, `chronicle-session-memory` for files.
 
-## When NOT to use
-- **Need to restart the sandbox or clean the environment**: If the session context is heavily degraded or you need a clean agent session with a state handoff → use `portage` instead.
-- **Rollback or filesystem session checkpointing**: For persisting/rolling back filesystem states and generating cryptographic state hashes → use `chronicle-session-memory` instead.
-- **Pruning conversation text vs filesystem state**: For conversation cleanup only, do not mutate state; use `chisel`/`portage` for text, `chronicle-session-memory` for files.
-
-## Tools (reason with these, don't auto-apply)
-- `scripts/baseline.mjs <transcript.jsonl>` — token/tool/turn metrics, USD cost estimate, and an edit-cycle retry proxy (Phase 0).
-- `lib/memory.js` `pruneAdvisor` — flags stale/duplicate context entries.
-- `lib/precision.js` `estimateToolCost` / `isRedundant` — tool-cost + redundancy checks.
-- `lib/reads.js` `shouldRead` / `duplicateReads` — flags re-reads of files already in context.
-- `lib/compress.js` `terseProseAdvisor` — filler reduction for the agent's PROSE only (never apply to code/output/errors; it auto-skips text that looks structured).
-- `lib/output.js` `toolOutputAdvisor` — trims verbose tool/command output to head + tail + count.
-- `lib/symbols.js` `symbolSlice` — extracts a single function/block by name (read the symbol, not the file).
-- `AGENT.md` — drop-in token-discipline rules for any project.
+- **The agent has genuinely lost track of earlier decisions and needs a clean restart** →
+  use `portage`. Chisel prunes noise inside a live session; it does not reset the session.
+- **You need to roll the filesystem back to a known-clean state** (a refactor went wrong,
+  you need pre-change state) → use `chronicle-session-memory`. Chisel never touches disk.
+- **The task needs a workspace checkpoint/hash for audit, not just less noise** →
+  `chronicle-session-memory` owns state hashing; chisel does not produce checkpoints.
