@@ -58,6 +58,16 @@ reasoning depth falls as the session grows. A 500K-token session scores worse th
 - Anything the user must verify verbatim.
 - When in doubt: clarity beats brevity.
 
+## When NOT to use
+- **Need to restart the sandbox or clean the environment**: If the session context is heavily degraded or you need a clean agent session with a state handoff → use `portage` instead.
+- **Rollback or filesystem session checkpointing**: For persisting/rolling back filesystem states and generating cryptographic state hashes → use `chronicle-session-memory` instead.
+- **Pruning conversation text vs filesystem state**: For conversation cleanup only, do not mutate state; use `chisel`/`portage` for text, `chronicle-session-memory` for files.
+
+## When NOT to use
+- **Need to restart the sandbox or clean the environment**: If the session context is heavily degraded or you need a clean agent session with a state handoff → use `portage` instead.
+- **Rollback or filesystem session checkpointing**: For persisting/rolling back filesystem states and generating cryptographic state hashes → use `chronicle-session-memory` instead.
+- **Pruning conversation text vs filesystem state**: For conversation cleanup only, do not mutate state; use `chisel`/`portage` for text, `chronicle-session-memory` for files.
+
 ## Tools (reason with these, don't auto-apply)
 - `scripts/baseline.mjs <transcript.jsonl>` — token/tool/turn metrics, USD cost estimate, and an edit-cycle retry proxy (Phase 0).
 - `lib/memory.js` `pruneAdvisor` — flags stale/duplicate context entries.
