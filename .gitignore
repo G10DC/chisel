@@ -3,3 +3,7 @@ node_modules/
 coverage/
 *.log
 .DS_Store
+
+# Enforced by G10DC Pruning
+.ast-cache.json
+.env
