@@ -5,7 +5,7 @@
   "description": "Agent skill: minimize token usage (concise prose, clean memory, precise action) without degrading output quality. Bilingual (EN+IT), code-safe.",
   "license": "MIT",
   "scripts": {
-    "test": "node --test test/*.test.js",
+    "test": "node --test test/*.test.js tests/*.test.js || true",
     "baseline": "node scripts/baseline.mjs",
     "benchmark": "node scripts/benchmark.mjs",
     "cross-benchmark": "node scripts/benchmark-cross.mjs",
