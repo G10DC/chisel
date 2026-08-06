@@ -43,18 +43,14 @@ payload, code, or literal strings.**
 
 ## When NOT to use
 
-<<<<<<< HEAD
 - **The agent has genuinely lost track of earlier decisions and needs a clean restart** →
   use `portage`. Chisel prunes noise inside a live session; it does not reset the session.
 - **You need to roll the filesystem back to a known-clean state** (a refactor went wrong,
   you need pre-change state) → use `chronicle-session-memory`. Chisel never touches disk.
 - **The task needs a workspace checkpoint/hash for audit, not just less noise** →
   `chronicle-session-memory` owns state hashing; chisel does not produce checkpoints.
-=======
-## When NOT to compress
-- Errors, failures, security warnings — full fidelity always.
-- Anything the user must verify verbatim.
-- When in doubt: clarity beats brevity.
+- **Errors, failures, security warnings** — full fidelity always.
+- **Anything the user must verify verbatim**.
 
 ## Tools (reason with these, don't auto-apply)
 - `scripts/baseline.mjs <transcript.jsonl>` — token/tool/turn metrics, USD cost estimate, and an edit-cycle retry proxy (Phase 0).
@@ -66,13 +62,11 @@ payload, code, or literal strings.**
 - `lib/symbols.js` `symbolSlice` — extracts a single function/block by name (read the symbol, not the file).
 - `AGENT.md` — drop-in token-discipline rules for any project.
 
-
 ---
 
-## ⚡ Spark Breakthrough Enhancement
+## Spark Breakthrough Enhancement
 
 - **Feature**: **Context Compression Engine**
 - **Description**: Strips redundant prompt tokens while preserving 100% AST semantic reachability.
 - **Synergy**: Integrated with `chronicle` (checkpoint memory) & `bonsai` (minimalism).
 - **Framework**: Applied via the `spark` 4-Lens Lateral Ideation Engine.
->>>>>>> fb632ca (feat(spark): integrate spark breakthrough enhancements into chisel)
