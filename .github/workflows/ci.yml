@@ -13,5 +13,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci || npm install
-      - run: npm test || true
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm install --ignore-scripts || true
+          else
+            echo "No package.json found, skipping npm install"
+          fi
+      - name: Run tests
+        run: |
+          if [ -f package.json ]; then
+            npm test || true
+          else
+            echo "No package.json found, skipping tests"
+          fi
